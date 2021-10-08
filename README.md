@@ -1,12 +1,19 @@
 celery-amqp-backend
 ===================
 
+[![PyPI](https://badge.fury.io/py/celery-amqp-backend.svg)](https://pypi.org/project/celery-amqp-backend/)
+[![Test Status](https://github.com/anexia-it/celery-amqp-backend/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/anexia-it/celery-amqp-backend/actions/workflows/test.yml)
+[![Codecov](https://codecov.io/gh/anexia-it/celery-amqp-backend/branch/main/graph/badge.svg)](https://codecov.io/gh/anexia-it/celery-amqp-backend)
+
 `celery-amqp-backend` is a rewrite of the Celery's original `amqp://` result backend, which was removed from Celery
 with version 5.0. Celery encourages you to use the newer `rpc://` result backend, as it does not create a new
 result queue for each task and thus is faster in many circumstances. However, it's not always possible to switch
 to the new `rpc://` result backend, as it does have restrictions as follows:
- - Results may hold a wrong state.
- - It may lose results when using `gevent` or `greenlet`.
+ - `rpc://` does not support chords.
+ - `rpc://` results may hold a wrong state.
+ - `rpc://` may lose results when using `gevent` or `greenlet`.
+
+The result backend `celery_amqp_backend.AMQPBackend://` does not suffer from the same issues.
 
 # Installation
 
@@ -58,6 +65,16 @@ result_persistent = False
 result_exchange = 'celery_result'
 result_exchange_type = 'direct'
 ```
+
+# Supported versions
+
+|             | Celery 5.0 | Celery 5.1 |
+|-------------|------------|------------|
+| Python 3.6  | ✓          | ✓          |
+| Python 3.7  | ✓          | ✓          |
+| Python 3.8  | ✓          | ✓          |
+| Python 3.9  | ✓          | ✓          |
+| Python 3.10 | ✓          | ✓          |
 
 # List of developers
 
