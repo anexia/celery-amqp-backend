@@ -14,7 +14,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     license='MIT',
-    description='A rewrite of the original Celery AMQP result backend that supports Celery 5.0 und newer.',
+    description='A rewrite of the original Celery AMQP result backend that supports Celery 5.0 and newer.',
     long_description=readme,
     long_description_content_type='text/markdown',
     url='https://github.com/anexia-it/celery-amqp-backend',
