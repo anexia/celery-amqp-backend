@@ -1,0 +1,57 @@
+name: Run linter and tests
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      rabbitmq:
+        image: rabbitmq:3.8-management
+        ports:
+          - 5672:5672
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.6"
+          - "3.7"
+          - "3.8"
+          - "3.9"
+          - "3.10"
+        celery-version:
+          - "5.0"
+          - "5.1"
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies and package
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install celery~=${{ matrix.celery-version }}.0
+
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 './celery_amqp_backend' --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 './celery_amqp_backend' --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Run tests
+      run: |
+        # prepare Django application
+        ln -s ./tests/test_project/test_project test_project
+        ln -s ./tests/test_project/manage.py manage.py
+
+        # run tests with coverage
+        coverage run --source='./celery_amqp_backend' manage.py test
+        coverage xml
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
