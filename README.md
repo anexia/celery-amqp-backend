@@ -20,13 +20,13 @@ The result backend `celery_amqp_backend.AMQPBackend://` does not suffer from the
 With a [correctly configured](https://pipenv.pypa.io/en/latest/basics/#basic-usage-of-pipenv) `pipenv` toolchain:
 
 ```sh
-pipenv install git+https://github.com/anexia-it/celery-amqp-backend.git@main
+pipenv install celery-amqp-backend
 ```
 
 You may also use classic `pip` to install the package:
 
 ```sh
-pip install git+https://github.com/anexia-it/celery-amqp-backend.git@main
+pip install celery-amqp-backend
 ```
 
 # Getting started
