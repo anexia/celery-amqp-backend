@@ -1,9 +1,9 @@
 celery-amqp-backend
 ===================
 
-[![PyPI](https://badge.fury.io/py/celery-amqp-backend.svg)](https://pypi.org/project/celery-amqp-backend/)
-[![Test Status](https://github.com/anexia-it/celery-amqp-backend/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/anexia-it/celery-amqp-backend/actions/workflows/test.yml)
-[![Codecov](https://codecov.io/gh/anexia-it/celery-amqp-backend/branch/main/graph/badge.svg)](https://codecov.io/gh/anexia-it/celery-amqp-backend)
+[![PyPI](https://img.shields.io/pypi/v/celery-amqp-backend)](https://pypi.org/project/celery-amqp-backend/)
+[![Test Status](https://github.com/anexia/celery-amqp-backend/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/anexia/celery-amqp-backend/actions/workflows/test.yml)
+[![Codecov](https://codecov.io/gh/anexia/celery-amqp-backend/branch/main/graph/badge.svg)](https://codecov.io/gh/anexia/celery-amqp-backend)
 
 `celery-amqp-backend` is a rewrite of the Celery's original `amqp://` result backend, which was removed from Celery
 with version 5.0. Celery encourages you to use the newer `rpc://` result backend, as it does not create a new
