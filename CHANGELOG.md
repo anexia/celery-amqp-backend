@@ -10,5 +10,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - AMQP result backend for Celery
 
-[Unreleased]: https://github.com/anexia-it/celery-amqp-backend/compare/1.0.0...HEAD
-[1.0.0]: https://github.com/anexia-it/celery-amqp-backend/releases/tag/1.0.0
+[Unreleased]: https://github.com/anexia/celery-amqp-backend/compare/1.0.0...HEAD
+[1.0.0]: https://github.com/anexia/celery-amqp-backend/releases/tag/1.0.0

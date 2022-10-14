@@ -17,7 +17,7 @@ setup(
     description='A rewrite of the original Celery AMQP result backend that supports Celery 5.0 and newer.',
     long_description=readme,
     long_description_content_type='text/markdown',
-    url='https://github.com/anexia-it/celery-amqp-backend',
+    url='https://github.com/anexia/celery-amqp-backend',
     author='Andreas Stocker',
     author_email='AStocker@anexia-it.com',
     install_requires=[
