@@ -13,7 +13,6 @@ jobs:
       fail-fast: false
       matrix:
         python-version:
-          - "3.6"
           - "3.7"
           - "3.8"
           - "3.9"
@@ -21,6 +20,7 @@ jobs:
         celery-version:
           - "5.0"
           - "5.1"
+          - "5.2"
 
     steps:
     - uses: actions/checkout@v2
@@ -51,7 +51,8 @@ jobs:
         ln -s ./tests/test_project/manage.py manage.py
 
         # run tests with coverage
-        coverage run --source='./celery_amqp_backend' manage.py test
+        coverage run --append --source='./celery_amqp_backend' manage.py test --settings=test_project.settings.backend
+        coverage run --append --source='./celery_amqp_backend' manage.py test --settings=test_project.settings.direct_reply_backend
         coverage xml
 
     - name: Upload coverage to Codecov
