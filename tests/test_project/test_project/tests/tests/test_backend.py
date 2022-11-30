@@ -1,5 +1,10 @@
-import time
 import celery
+import time
+import unittest
+
+from django.conf import settings
+
+from celery.signals import before_task_publish
 
 from celery_amqp_backend import *
 
@@ -10,6 +15,15 @@ from .base import *
 __all__ = [
     'BackendTestCase',
 ]
+
+
+_direct_reply_backend = 'DirectReplyAMQPBackend://' in settings.CELERY_RESULT_BACKEND
+
+
+if _direct_reply_backend:
+    @before_task_publish.connect
+    def before_task_publish_handler(properties=None, **kwargs):
+        properties['reply_to'] = 'amq.rabbitmq.reply-to'
 
 
 class BackendTestCase(BaseIntegrationTestCase):
@@ -30,6 +44,13 @@ class BackendTestCase(BaseIntegrationTestCase):
 
         self.assertEqual(async_result.ready(), True)
         self.assertEqual(async_result.successful(), True)
+
+    def test_async_result_reverse(self):
+        async_result_1 = add_numbers.delay(1, 2)
+        async_result_2 = add_numbers.delay(2, 3)
+
+        self.assertEqual(async_result_2.get(), 5)
+        self.assertEqual(async_result_1.get(), 3)
 
     def test_async_result_group(self):
         async_job = celery.group([
@@ -61,6 +82,7 @@ class BackendTestCase(BaseIntegrationTestCase):
         self.assertEqual(async_result.ready(), True)
         self.assertEqual(async_result.successful(), True)
 
+    @unittest.skipIf(_direct_reply_backend, 'DirectReplyAMQPBackend does not support chords')
     def test_async_result_chord(self):
         async_chord = celery.chord([
             add_numbers.s(1, 2),
@@ -71,6 +93,7 @@ class BackendTestCase(BaseIntegrationTestCase):
 
         self.assertEqual(result, 10)
 
+    @unittest.skipIf(_direct_reply_backend, 'DirectReplyAMQPBackend does not support chords')
     def test_async_result_chord_status(self):
         async_chord = celery.chord([
             add_numbers.s(1, 2),
