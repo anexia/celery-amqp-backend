@@ -2,11 +2,15 @@ import collections
 import socket
 
 import kombu
+import kombu.utils.compat as compat
 
-from celery import exceptions
 from celery import states
+from celery import exceptions as celery_exceptions
+from celery.backends import asynchronous
 from celery.backends import base
+from celery._state import current_task
 
+from .consumer import *
 from .exceptions import *
 
 __all__ = [
@@ -383,7 +387,7 @@ class AMQPBackend(base.BaseBackend):
         return super().__reduce__(args, kwargs)
 
 
-class DirectReplyAMQPBackend(base.BaseBackend):
+class DirectReplyAMQPBackend(base.Backend, asynchronous.AsyncBackendMixin):
     """
     Celery result backend that uses RabbitMQ's direct-reply functionality for results.
     """
@@ -394,6 +398,7 @@ class DirectReplyAMQPBackend(base.BaseBackend):
     Consumer = kombu.Consumer
     Producer = kombu.Producer
     Queue = kombu.Queue
+    ResultConsumer = DirectReplyAMQPResultConsumer
 
     BacklogLimitExceededException = AMQPBacklogLimitExceededException
     WaitEmptyException = AMQPWaitEmptyException
@@ -424,10 +429,18 @@ class DirectReplyAMQPBackend(base.BaseBackend):
             self.result_exchange_type,
             self.delivery_mode,
         )
+        self.result_consumer = self.ResultConsumer(
+            self,
+            self.app,
+            self.accept,
+            self._pending_results,
+            self._pending_messages,
+        )
         self.serializer = serializer or conf.result_serializer
-
-        self._consumers = {}
         self._cache = kombu.utils.functional.LRUCache(limit=10000)
+
+        if compat.register_after_fork is not None:
+            compat.register_after_fork(self, lambda backend: backend._after_fork())
 
     def reload_task_result(self, task_id):
         raise NotImplementedError('reload_task_result is not supported by this backend.')
@@ -447,81 +460,47 @@ class DirectReplyAMQPBackend(base.BaseBackend):
     def add_to_chord(self, chord_id, result):
         raise NotImplementedError('add_to_chord is not supported by this backend.')
 
-    def get_many(self, task_ids, **kwargs):
-        raise NotImplementedError('get_many is not supported by this backend.')
+    def _set_cache_by_message(self, task_id, message):
+        print("#####################################")
+        print("SET_CACHE_BY_MESSAGE: DirectReplyAMQPBackend")
+        print("#####################################")
 
-    def wait_for(self, task_id, timeout=None, interval=0.5, on_interval=None, no_ack=True):
-        """
-        Waits for task and returns the result.
+        payload = self._cache[task_id] = self.meta_from_decoded(message.payload)
+        return payload
 
-        :param task_id: The task identifiers we want the result for
-        :param timeout: Consumer read timeout
-        :param no_ack: If enabled the messages are automatically acknowledged by the broker
-        :param interval: Interval to drain messages from the queue
-        :param on_interval: Callback function for message poll intervals
-        :param kwargs:
-        :return: Task result body as dict
-        """
+    def _get_message_task_id(self, message):
+        print("#####################################")
+        print("GET_MESSAGE_TASK_ID: DirectReplyAMQPBackend")
+        print("#####################################")
+
         try:
-            return super().wait_for(
-                task_id,
-                timeout=timeout,
-                interval=interval,
-                no_ack=no_ack,
-                on_interval=on_interval
-            )
-        except exceptions.TimeoutError:
-            consumer = self._consumers.pop(task_id, None)
-            if consumer and consumer not in self._consumers.values():
-                consumer.cancel()
-
-            raise self.WaitTimeoutException()
+            # try property first, so we don't have to deserialize
+            # the payload.
+            return message.properties['correlation_id']
+        except (AttributeError, KeyError):
+            # message sent by old Celery version, need to deserialize.
+            return message.payload['task_id']
 
     def get_task_meta(self, task_id, backlog_limit=1000):
-        def _on_message_callback(message):
-            nonlocal meta, task_id
-            payload = message.decode()
-
-            if not isinstance(payload, (dict,)) or 'task_id' not in payload:
-                return
-
-            if task_id == payload['task_id']:
-                meta = payload
-            else:
-                self._cache[payload['task_id']] = payload
-
-        meta = self._cache.pop(task_id, None)
-
-        if meta is not None:
-            return meta
-
-        consumer = self._consumers.get(task_id)
-
-        if not consumer:
-            return {
-                'status': states.FAILURE,
-                'result': None,
-            }
-
-        consumer.on_message = _on_message_callback
-        consumer.consume()
+        print("#####################################")
+        print("GET_TASK_META: DirectReplyAMQPBackend")
+        print("#####################################")
 
         try:
-            consumer.connection.drain_events(timeout=0.5)
-        except socket.timeout:
-            pass
+            return self._cache[task_id]
+        except KeyError:
+            return {'status': states.PENDING, 'result': None}
 
-        if meta:
-            consumer = self._consumers.pop(task_id, None)
-            if consumer and consumer not in self._consumers.values():
-                consumer.cancel()
-
-            return self.meta_from_decoded(meta)
-        else:
-            return {
-                'status': states.PENDING,
-                'result': None,
-            }
+    def wait_for_pending(self, result, callback=None, propagate=True, **kwargs):
+        try:
+            return super().wait_for_pending(
+                result,
+                callback=callback,
+                propagate=propagate,
+                **kwargs,
+            )
+        except (socket.timeout, celery_exceptions.TimeoutError):
+            raise self.WaitTimeoutException()
 
     def store_result(self, task_id, result, state, traceback=None, request=None, **kwargs):
         """
@@ -535,9 +514,22 @@ class DirectReplyAMQPBackend(base.BaseBackend):
         :param kwargs:
         :return: The task result as dict
         """
+        print("#####################################")
+        print("STORE_RESULT: DirectReplyAMQPBackend")
+        print("#####################################")
+
+        try:
+            request = request or current_task.request
+        except AttributeError:
+            raise RuntimeError(f"DirectReplyAMQP backend missing task request for {task_id!r}")
+
         # Determine the routing key and a potential correlation identifier.
         routing_key = self._create_routing_key(task_id, request)
         correlation_id = self._create_correlation_id(task_id, request)
+
+        print("#####################################")
+        print(f"STORE_RESULT: DirectReplyAMQPBackend: {routing_key}")
+        print("#####################################")
 
         with self.app.amqp.producer_pool.acquire(block=True) as producer:
             producer.publish(
@@ -559,39 +551,8 @@ class DirectReplyAMQPBackend(base.BaseBackend):
 
         return result
 
-    def on_task_call(self, producer, task_id):
-        """
-        Creates and saves a consumer for the direct-reply pseudo-queue, before the task request is sent
-        to the queue.
-
-        :param producer: The producer for the task request
-        :param task_id: The task identifier
-        """
-        for _, consumer in self._consumers.items():
-            if consumer.channel is producer.channel:
-                self._consumers[task_id] = consumer
-                break
-        else:
-            self._consumers[task_id] = self._create_consumer(
-                producer.channel,
-            )
-
-    def _create_consumer(self, channel):
-        """
-        Creates a consumer with the given parameters.
-
-        :param channel: The channel to use for the consumer
-        :return: Created consumer
-        """
-        consumer_queue = kombu.Queue("amq.rabbitmq.reply-to", no_ack=True)
-        consumer = kombu.Consumer(
-            channel,
-            queues=[consumer_queue],
-            auto_declare=True,
-        )
-        consumer.consume()
-
-        return consumer
+    def _create_binding(self, task_id):
+        return kombu.Queue("amq.rabbitmq.reply-to", no_ack=True, no_declare=False)
 
     def _create_exchange(self, name, exchange_type='direct', delivery_mode=2):
         """
@@ -602,6 +563,10 @@ class DirectReplyAMQPBackend(base.BaseBackend):
         :param delivery_mode: Exchange delivery mode as integer (1 for transient, 2 for persistent)
         :return: Created exchange
         """
+        print("#####################################")
+        print("CREATE_EXCHANGE: DirectReplyAMQPBackend")
+        print("#####################################")
+
         return self.Exchange(
             name=name,
             type=exchange_type,
@@ -618,6 +583,10 @@ class DirectReplyAMQPBackend(base.BaseBackend):
         :param request: The task request object
         :return: Routing key as string
         """
+        print("#####################################")
+        print("CREATE_ROUTING_KEY: DirectReplyAMQPBackend")
+        print("#####################################")
+
         return request and request.reply_to or task_id
 
     def _create_correlation_id(self, task_id, request=None):
@@ -628,7 +597,18 @@ class DirectReplyAMQPBackend(base.BaseBackend):
         :param request: The task request object
         :return: Routing key as string
         """
+        print("#####################################")
+        print("CREATE_CORRELATION_ID: DirectReplyAMQPBackend")
+        print("#####################################")
+
         return request and request.correlation_id or task_id
+
+    def on_task_call(self, producer, task_id):
+        print("#####################################")
+        print("ON_TASK_CALL: DirectReplyAMQPBackend")
+        print("#####################################")
+
+        self.result_consumer.start(task_id, channel=producer.channel)
 
     def __reduce__(self, args=(), kwargs=None):
         kwargs = kwargs if kwargs else {}

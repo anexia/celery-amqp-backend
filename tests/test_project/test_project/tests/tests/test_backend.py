@@ -24,7 +24,6 @@ if _direct_reply_backend:
     @before_task_publish.connect
     def before_task_publish_handler(properties=None, **kwargs):
         properties['reply_to'] = 'amq.rabbitmq.reply-to'
-        pass
 
 
 class BackendTestCase(BaseIntegrationTestCase):
@@ -53,7 +52,6 @@ class BackendTestCase(BaseIntegrationTestCase):
         self.assertEqual(async_result_2.get(), 5)
         self.assertEqual(async_result_1.get(), 3)
 
-    @unittest.skipIf(_direct_reply_backend, 'DirectReplyAMQPBackend does not support groups')
     def test_async_result_group(self):
         async_job = celery.group([
             add_numbers.s(1, 2),
@@ -67,7 +65,6 @@ class BackendTestCase(BaseIntegrationTestCase):
         self.assertEqual(result[1], [1, 2, 3, 4])
         self.assertEqual(result[2], {'a': 'abc', 'b': 'efg', })
 
-    @unittest.skipIf(_direct_reply_backend, 'DirectReplyAMQPBackend does not support groups')
     def test_async_result_group_status(self):
         async_job = celery.group([
             add_numbers.s(1, 2),
