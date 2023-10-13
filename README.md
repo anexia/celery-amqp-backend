@@ -68,13 +68,13 @@ result_exchange_type = 'direct'
 
 # Supported versions
 
-|             | Celery 5.0 | Celery 5.1 |
+|             | Celery 5.2 | Celery 5.3 |
 |-------------|------------|------------|
-| Python 3.6  | ✓          | ✓          |
-| Python 3.7  | ✓          | ✓          |
 | Python 3.8  | ✓          | ✓          |
 | Python 3.9  | ✓          | ✓          |
 | Python 3.10 | ✓          | ✓          |
+| Python 3.11 | ✓          | ✓          |
+| Python 3.12 | ✗          | ✓          |
 
 # List of developers
 
