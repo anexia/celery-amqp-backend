@@ -2,10 +2,10 @@
 -e .
 
 # Development dependencies
-pytest>=6.2,<6.3
-flake8>=3.9,<3.10
+pytest>=7.4,<7.5
+flake8>=6.1.0,<6.2.0
 codecov>=2.1,<2.2
-django>=3.2,<3.3
+django>=4.2,<4.3
 setuptools>=42
 wheel>=0.37
 twine>=3.4

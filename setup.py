@@ -21,7 +21,7 @@ setup(
     author='Andreas Stocker',
     author_email='AStocker@anexia-it.com',
     install_requires=[
-        'celery>=5.0,<6.0',
+        'celery>=5.2,<6.0',
     ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
@@ -30,11 +30,11 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
         'Framework :: Celery',
         'Topic :: Software Development',
     ],
