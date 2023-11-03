@@ -1,3 +1,5 @@
+import celery.exceptions
+
 __all__ = [
     'AMQPBacklogLimitExceededException',
     'AMQPWaitEmptyException',
@@ -25,5 +27,5 @@ class AMQPWaitEmptyException(BaseCeleryException):
     _msg_template = 'No message got drained from the queue while waiting for "{task}".'
 
 
-class AMQPWaitTimeoutException(BaseCeleryException, TimeoutError):
+class AMQPWaitTimeoutException(BaseCeleryException, celery.exceptions.TimeoutError):
     _msg_template = 'The operation timed out.'
