@@ -3,11 +3,11 @@ import time
 from test_project import *
 
 __all__ = [
-    'sum_numbers',
-    'add_numbers',
-    'add_numbers_slow',
-    'combine_lists',
-    'combine_dicts',
+    "sum_numbers",
+    "add_numbers",
+    "add_numbers_slow",
+    "combine_lists",
+    "combine_dicts",
 ]
 
 

@@ -1,5 +1,5 @@
 __all__ = [
-    'urlpatterns',
+    "urlpatterns",
 ]
 
 urlpatterns = []
