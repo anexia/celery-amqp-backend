@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2024-10-25
+### Added
+- Added support for Celery 5.4
+
+### Removed
+- Removed support for Python 3.8
+
 ## [1.1.0] - 2023-11-03
 ### Added
 - Added support for Python 3.11 and Python 3.12
@@ -22,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - AMQP result backend for Celery
 
-[Unreleased]: https://github.com/anexia/celery-amqp-backend/compare/1.1.0...HEAD
+[Unreleased]: https://github.com/anexia/celery-amqp-backend/compare/1.2.0...HEAD
+[1.2.0]: https://github.com/anexia/celery-amqp-backend/releases/tag/1.2.0
 [1.1.0]: https://github.com/anexia/celery-amqp-backend/releases/tag/1.1.0
 [1.0.0]: https://github.com/anexia/celery-amqp-backend/releases/tag/1.0.0

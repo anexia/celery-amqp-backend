@@ -1,11 +1,11 @@
 # Package and package dependencies
 -e .
+codecov>=2.1,<2.2
+django>=4.2,<6
+flake8>=7.1.0,<7.2.0
 
 # Development dependencies
-pytest>=7.4,<7.5
-flake8>=6.1.0,<6.2.0
-codecov>=2.1,<2.2
-django>=4.2,<4.3
-setuptools>=42
-wheel>=0.37
-twine>=3.4
+pytest>=8.3,<8.4
+setuptools>=75
+twine>=5.1
+wheel>=0.44
